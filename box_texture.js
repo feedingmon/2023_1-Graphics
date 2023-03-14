@@ -1,7 +1,3 @@
-#무지개 이미지가 나타나는 박스 텍스쳐
-
-
-
 let img;
 function preload(){
   img = loadImage("rainbow.jpeg");
