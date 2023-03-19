@@ -1,0 +1,17 @@
+
+let img;
+function preload(){
+  img = loadImage("rainbow.jpeg");    // 이미지 로드
+
+}
+function setup() {
+  createCanvas(400, 400, WEBGL);      // 'WEBGL'로 3D그래픽을 만드는 모드
+}
+
+function draw() {                     
+  background(200);
+  rotateX(frameCount * 0.02);         // 박스의 각 축을 회전시킴
+  rotateY(frameCount * 0.02);
+  texture(img);                       // box에 로드한 이미지를 텍스쳐로 입힌다
+  box(100);                           // 100 사이즈의 박스생성
+}
