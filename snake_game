@@ -1,0 +1,431 @@
+let img; 
+
+function preload(){ 
+
+  img = loadImage("blood.png");     
+
+  //이미지 파일 불러오기 (이미지파일을 sketch files에 업로드한 후 실행하도록 한다) 
+
+  } 
+
+let s;                             //변수 선언 
+
+let scl = 20; 
+
+let scl_food = 25; 
+
+let scl_snake = 20; 
+
+let food; 
+
+let item; 
+
+let speed_snake=1; 
+
+let togItem = 0; 
+
+playfield = 600; 
+
+  
+
+// 셋업함수 : 캔버스를 초기화하고 프레임 속도를 설정하고 새 Snake 개체를 만듭니다. 
+
+  
+
+function setup() { 
+
+  createCanvas(playfield, 600);    //캔버스 생성                  
+
+  s = new Snake();                  
+
+  frameRate (10);                  //프레임 속도 조절        
+
+  pickLocation(); 
+
+} 
+
+  
+
+// 드로우 함수 : 메인 게임 루프. 뱀을 업데이트 및 표시하고 음식 및 벽과의 충돌을 확인하고 점수를 업데이트합니다. 또한 플레이어가 아이템을 스폰하기에 충분한 음식을 먹었는지 확인하고, 필요한 경우 아이템을 스폰하고, 플레이어가 아이템을 수집했는지 확인합니다. 
+
+  
+
+function draw() { 
+
+  let today = new Date(); 
+
+  background(img);                //배경에 불러온 이미지를 적용 
+
+  scoreboard(); 
+
+  foodRotate(today); 
+
+  s.death(); 
+
+  s.update(); 
+
+  s.show(); 
+
+  if (s.eat(food)) { 
+
+    pickLocation(); 
+
+  } 
+
+  if(s.score % 5 == 0 && s.score>0){ 	//아이템 놓기, 아이템 먹기 
+
+    if(togItem==0){ 
+
+      let cols_item = floor(playfield/scl_food); 
+
+      let rows_item = floor(playfield/scl_food);     
+
+      item = createVector(floor(random(cols_item)), floor(random(rows_item))); 
+
+      item.mult(scl_food); 
+
+      fill (0,255,100); 
+
+      rect(item.x,item.y, scl_food, scl_food);   
+
+      togItem=1; 
+
+    } 
+
+  
+
+    fill (0,255,100); 
+
+    rect(item.x,item.y, scl_food, scl_food);   
+
+    let d_item = dist(s.x, s.y, item.x+scl_food/2, item.y+scl_food/2); 
+
+      if(d_item < scl_food){ 
+
+      console.log("ATE"); 
+
+      togItem=0; 
+
+      s.score= s.score+1; 
+
+      scl_food=scl_food*2; 
+
+    } 
+
+  }  
+
+ } 
+
+  
+
+function foodRotate(today){ 	 //음식이 나타날 랜덤한 장소, 음식의 움직임 설정 
+
+  let x_speed=3,y_speed=-0; 
+
+  let rnd = Math.floor(Math.random() * 4); 
+
+   
+
+  if(today.getSeconds()%2==0){ 
+
+    if(rnd == 0){ 
+
+      x_speed = 5; 
+
+      y_speed = 0; 
+
+    }else if(rnd == 1){ 
+
+      x_speed = 0; 
+
+      y_speed = 5; 
+
+    }else if(rnd == 2){ 
+
+      x_speed = -5; 
+
+      y_speed = 0; 
+
+    }else if(rnd == 3){ 
+
+      x_speed = 0; 
+
+      y_speed = -5; 
+
+    } 
+
+  } 
+
+    
+
+  fill (0); 
+
+  ellipse(food.x,food.y, scl_food, scl_food);  
+
+  //음식의 움직임 설정하여 먹이를 먹기 어렵도록 설정하였습니다 
+
+  food.x = constrain(food.x+x_speed, 0, playfield-scl);  
+
+  
+
+  food.y = constrain(food.y+y_speed, 0, playfield-scl); 
+
+  } 
+
+// 음식이 나타날 위치를 선택 
+
+  
+
+function pickLocation() { 
+
+  let cols = floor(playfield/scl_food); 
+
+  let rows = floor(playfield/scl_food); 
+
+  food = createVector(floor(random(cols)), floor(random(rows)));  
+
+  food.mult(scl_food); 
+
+  
+
+  // 음식이 꼬리 안에 나타나지 않는지 확인 
+
+  
+
+  for (let i = 0; i < s.tail.length; i++) { 
+
+    let pos = s.tail[i]; 
+
+    let d = dist(food.x, food.y, pos.x, pos.y); 
+
+    if (d < 1) { 
+
+      pickLocation(); 
+
+    } 
+
+  } 
+
+} 
+
+  
+
+// scoreboard() : 화면 하단에 점수를 나타내는 점수판을 띄웁니다 
+
+  
+
+function scoreboard() {       
+
+  fill(0); 
+
+  rect(0, 560, 600, 40); 
+
+  fill(255); 
+
+  textFont("Georgia"); 
+
+  textSize(18); 
+
+  text("Score: ", 10, 585); 
+
+  text("Highscore: ", 450, 585) 
+
+  text(s.score, 70, 585); 
+
+  text(s.highscore, 540, 585) 
+
+} 
+
+  
+
+// keyPressed() : 키보드를 이용하여 뱀의 방향을 결정합니다 
+
+  
+
+function keyPressed() { 
+
+  if (keyCode === UP_ARROW){ 
+
+      s.dir(0, -speed_snake); 
+
+  }else if (keyCode === DOWN_ARROW) { 
+
+      s.dir(0, speed_snake); 
+
+  }else if (keyCode === RIGHT_ARROW) { 
+
+      s.dir (speed_snake, 0); 
+
+  }else if (keyCode === LEFT_ARROW) { 
+
+      s.dir (-speed_snake, 0); 
+
+  } 
+
+} 
+
+  
+
+// 스네이크 객체 
+
+  
+
+function Snake() { 
+
+  this.x =0; 
+
+  this.y =0; 
+
+  this.xspeed = 1; 
+
+  this.yspeed = 0; 
+
+  this.total = 0; 
+
+  this.tail = []; 
+
+  this.score = 1; 
+
+  this.highscore = 1; 
+
+  
+
+  this.dir = function(x,y) { 
+
+    this.xspeed = x; 
+
+    this.yspeed = y; 
+
+  } 
+
+  
+
+  this.eat = function(pos) { 
+
+    let d = dist(this.x, this.y, pos.x+scl_food/2, pos.y+scl_food/2); 
+
+      if (d < scl_food) { 
+
+      if(this.score % 10 == 0 && this.score>0){ 	//먹이 10개를 먹었을 때 뱀의 속도 빨라짐 
+
+        speed_snake = speed_snake * 1.3; 
+
+      } 
+
+      scl_food = 20;    				//먹이를 먹으면 아이템의 효과  
+
+      scl_snake = scl_snake+1; 
+
+      this.total++; 
+
+      this.score++; 
+
+      text(this.score, 70, 585); 
+
+      if (this.score > this.highscore) { 
+
+        this.highscore = this.score; 
+
+      } 
+
+      text(this.highscore, 540, 585); 
+
+      return true; 
+
+    } else { 
+
+      return false; 
+
+    } 
+
+  } 
+
+  
+
+  //death() : 벽에 닿거나 꼬리에 닿으면 점수 초기화 
+
+   
+
+  this.death = function() { 
+
+    for (let i = 0; i < this.tail.length; i++) { 
+
+      let pos = this.tail[i]; 
+
+      let d = dist(this.x, this.y, pos.x, pos.y); 
+
+      if (d < 1) { 
+
+        scl_snake=20; 
+
+        this.total = 0; 
+
+        this.score = 0; 
+
+        this.tail = []; 
+
+      } 
+
+    } 
+
+  } 
+
+  
+
+  // 먹이를 먹으면 꼬리생성과 점수증가 
+
+  this.update = function(){ 
+
+    if (this.total === this.tail.length) { 
+
+      for (let i = 0; i < this.tail.length-1; i++) { 
+
+        this.tail[i] = this.tail[i+1]; 
+
+    } 
+
+  
+
+    } 
+
+    this.tail[this.total-1] = createVector(this.x, this.y);  //꼬리 생성 
+
+  
+
+    this.x = this.x + this.xspeed*scl_snake; 
+
+    this.y = this.y + this.yspeed*scl_snake; 
+
+  
+
+    this.x = constrain(this.x, 0, playfield-scl);      //벽을 뚫지 못하게 막음 
+
+    this.y = constrain(this.y, 0, playfield-scl); 
+
+  
+
+  
+
+  } 
+
+   
+
+  //뱀의 색상, 모양 설정 
+
+  this.show = function(){ 
+
+    fill(255); 
+
+    for (let i = 0; i < this.tail.length; i++) { 
+
+        ellipse(this.tail[i].x, this.tail[i].y, scl_snake, scl_snake); 
+
+    } 
+
+  
+
+    ellipse(this.x, this.y, scl_snake, scl_snake); 
+
+  } 
+
+} 
